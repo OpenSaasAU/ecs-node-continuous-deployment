@@ -52,7 +52,7 @@ Resources:
     Properties:
       TemplateURL: https://s3.amazonaws.com/ecs-refarch-continuous-deployment/templates/ecs-cluster.yaml
       Parameters:
-        SourceSecurityGroup: !GetAtt LoadBalancer.Outputs.SecurityGroup
+        SourceSecurityGroup: !GetAtt VPC.Outputs.SecurityGroup
         Subnets: !GetAtt VPC.Outputs.Subnets
         VpcId: !GetAtt VPC.Outputs.VpcId
 
@@ -66,16 +66,8 @@ Resources:
         GitHubToken: !Ref GitHubToken
         GitHubRepo: !Ref GitHubRepo
         GitHubBranch: !Ref GitHubBranch
-        TargetGroup: !GetAtt LoadBalancer.Outputs.TargetGroup
+        TargetGroup: !GetAtt VPC.Outputs.TargetGroup
         TemplateBucket: ecs-refarch-continuous-deployment
-
-  LoadBalancer:
-    Type: AWS::CloudFormation::Stack
-    Properties:
-      TemplateURL: https://s3.amazonaws.com/ecs-refarch-continuous-deployment/templates/load-balancer.yaml
-      Parameters:
-        Subnets: !GetAtt VPC.Outputs.Subnets
-        VpcId: !GetAtt VPC.Outputs.VpcId
 
   VPC:
     Type: AWS::CloudFormation::Stack
@@ -89,9 +81,6 @@ Resources:
 
 
 Outputs:
-  ServiceUrl:
-    Description: The sample service that is being continuously deployed.
-    Value: !GetAtt LoadBalancer.Outputs.ServiceUrl
 
   PipelineUrl:
     Description: The continuous deployment pipeline in the AWS Management Console.
