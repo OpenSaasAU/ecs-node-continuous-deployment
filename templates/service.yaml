@@ -41,10 +41,7 @@ Resources:
       Role: !Ref ECSServiceRole
       DesiredCount: !Ref DesiredCount
       TaskDefinition: !Ref TaskDefinition
-      LoadBalancers:
-        - ContainerName: node-app
-          ContainerPort: 3000
-          TargetGroupArn: !Ref TargetGroup
+     
 
   TaskDefinition:
     Type: AWS::ECS::TaskDefinition
