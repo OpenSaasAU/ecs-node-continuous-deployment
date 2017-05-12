@@ -23,7 +23,14 @@ Parameters:
     Type: String
     Description: >
       Token for the user specified above. (https://github.com/settings/tokens)
-
+      
+  EC2KeyName:
+    Type: String
+    Description: EC2 Key Pair Name
+  
+  ConfigBucket:
+    Type: String
+    Description: Bucket Containing configEnv.json file
 
 Metadata:
   AWS::CloudFormation::Interface:
@@ -50,29 +57,30 @@ Resources:
   Cluster:
     Type: AWS::CloudFormation::Stack
     Properties:
-      TemplateURL: https://s3.amazonaws.com/ecs-refarch-continuous-deployment/templates/ecs-cluster.yaml
+      TemplateURL: https://s3.amazonaws.com/cloudformtemplates-node-ecs/ecs-cluster.yaml
       Parameters:
         SourceSecurityGroup: !GetAtt VPC.Outputs.SecurityGroup
         Subnets: !GetAtt VPC.Outputs.Subnets
         VpcId: !GetAtt VPC.Outputs.VpcId
+        KeyName: !Ref EC2KeyName
 
   DeploymentPipeline:
     Type: AWS::CloudFormation::Stack
     Properties:
-      TemplateURL: https://s3.amazonaws.com/ecs-refarch-continuous-deployment/templates/deployment-pipeline.yaml
+      TemplateURL: https://s3.amazonaws.com/cloudformtemplates-node-ecs/deployment-pipeline.yaml
       Parameters:
         Cluster: !GetAtt Cluster.Outputs.ClusterName
         GitHubUser: !Ref GitHubUser
         GitHubToken: !Ref GitHubToken
         GitHubRepo: !Ref GitHubRepo
         GitHubBranch: !Ref GitHubBranch
-        TargetGroup: !GetAtt VPC.Outputs.TargetGroup
-        TemplateBucket: ecs-refarch-continuous-deployment
+        TemplateBucket: cloudformtemplates-node-ecs
+        ConfigBucket: !Ref ConfigBucket
 
   VPC:
     Type: AWS::CloudFormation::Stack
     Properties:
-      TemplateURL: https://s3.amazonaws.com/ecs-refarch-continuous-deployment/templates/vpc.yaml
+      TemplateURL: https://s3.amazonaws.com/cloudformtemplates-node-ecs/vpc.yaml
       Parameters:
         Name: !Ref AWS::StackName
         VpcCIDR: 10.215.0.0/16
