@@ -11,7 +11,7 @@ Launching this AWS CloudFormation stack provisions a continuous deployment proce
 
 #### 1. Fork the GitHub repository
 
-[Fork](https://help.github.com/articles/fork-a-repo/) the [Amazon ECS sample app](https://github.com/awslabs/ecs-demo-php-simple-app) GitHub repository into your GitHub account.
+[Fork](https://help.github.com/articles/fork-a-repo/) the [OpenSaas Amazon ECS node app](https://github.com/OpensaasAU/ecs-node-continuous-deployment) GitHub repository into your GitHub account.
 
 From your terminal application, execute the following command (make sure to replace `<your_github_username>` with your actual GitHub username):
 
@@ -19,13 +19,19 @@ From your terminal application, execute the following command (make sure to repl
 git clone https://github.com/<your_github_username>/ecs-demo-php-simple-app
 ```
 
-This creates a directory named `ecs-demo-php-simple-app` in your current directory, which contains the code for the Amazon ECS sample app.
+This creates a directory named `ecs-node-continuous-deployment` in your current directory, which contains the code for the Amazon ECS sample app.
 
-#### 2. Create the CloudFormation stack
+#### 2. Upload files to S3
 
-Choose **Launch Stack** to launch the template in the US East (N. Virginia) Region in your account:
+Zip the Templates folder and upload it to an S3 Bucket
 
-[![Launch ECS Continuous Deployment into North Virginia with CloudFormation](images/cloudformation-launch-stack.png)](https://console.aws.amazon.com/cloudformation/home?region=us-east-1#/stacks/new?stackName=ecs-cd&templateURL=https://s3.amazonaws.com/ecs-refarch-continuous-deployment/ecs-refarch-continuous-deployment.yaml)
+Upload each .yaml file int the tempates directory to the same s3bucket.
+
+#### 3. Create the CloudFormation stack
+
+```console
+aws cloudformation deploy --template-file ecs-refarch-continuous-deployment.yaml --stack-name <Stack_Name --capabilities CAPABILITY_NAMED_IAM --parameter-overrides GitHubRepo=<Git_Repo_Name> GitHubBranch=<Git_Branch> GitHubUser=<Git_Username> GitHubToken=<Git_Token> EC2KeyName=<EC2_Key_Name> ConfigBucket=<S3_Config_Bucket_Name>
+```
 
 The CloudFormation template requires the following parameters:
 
@@ -34,10 +40,12 @@ The CloudFormation template requires the following parameters:
   - **Branch**: The branch of the repo to deploy continuously.
   - **User**: Your username on GitHub.
   - **Personal Access Token**: Token for the user specified above. ([https://github.com/settings/tokens](https://github.com/settings/tokens))
+- Stack configuration
+  - **EC2KeyName**: The name of your EC2 Key to login to the EC2 Instance
+  - **ConfigBucket**: Name of your S3 Bucket that contains your configEnv.zip which has your configEnv.json file
 
 The CloudFormation stack provides the following output:
 
-- **ServiceUrl**: The sample service that is being continuously deployed.
 - **PipelineUrl**: The continuous deployment pipeline in the AWS Management Console.
 
 ### Testing the example
@@ -75,7 +83,7 @@ The following sections explains all of the resources created by the CloudFormati
 
 #### [Load Balancer](templates/load-balancer.yaml)
 
-  An Application Load Balancer to be used for traffic to the sample application.
+  Not used in the current configuration
 
 #### [VPC](templates/vpc.yaml)
 
