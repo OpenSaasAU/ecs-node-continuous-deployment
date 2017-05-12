@@ -11,13 +11,13 @@ Parameters:
   GitHubUser:
     Type: String
 
-  TargetGroup:
-    Type: String
-
   Cluster:
     Type: String
 
   TemplateBucket:
+    Type: String
+  
+  ConfigBucket:
     Type: String
 
 
@@ -116,6 +116,8 @@ Resources:
                   - !Sub arn:aws:s3:::${ArtifactBucket}/*
                   - !Sub arn:aws:s3:::${TemplateBucket}
                   - !Sub arn:aws:s3:::${TemplateBucket}/*
+                  - !Sub arn:aws:s3:::${ConfigBucket}
+                  - !Sub arn:aws:s3:::${ConfigBucket}/*
                 Effect: Allow
                 Action:
                   - s3:PutObject
@@ -207,6 +209,18 @@ Resources:
               Configuration:
                 S3Bucket: !Ref TemplateBucket
                 S3ObjectKey: templates.zip
+            - Name: ConfigEnv
+              ActionTypeId:
+                Category: Source
+                Owner: AWS
+                Version: 1
+                Provider: S3
+              OutputArtifacts:
+                - Name: ConfigEnv
+              RunOrder: 1
+              Configuration:
+                S3Bucket: !Ref ConfigBucket
+                S3ObjectKey: configEnv.json
         - Name: Build
           Actions:
             - Name: Build
@@ -236,16 +250,17 @@ Resources:
                 StackName: !Sub "${AWS::StackName}-Service"
                 Capabilities: CAPABILITY_NAMED_IAM
                 TemplatePath: Template::templates/service.yaml
+                TemplateConfiguration: ConfigEnv::configEnv.json
                 RoleArn: !GetAtt CloudFormationExecutionRole.Arn
                 ParameterOverrides: !Sub |
                   {
                     "Tag" : { "Fn::GetParam" : [ "BuildOutput", "build.json", "tag" ] },
                     "DesiredCount": "1",
                     "Cluster": "${Cluster}",
-                    "TargetGroup": "${TargetGroup}",
                     "Repository": "${Repository}"
                   }
               InputArtifacts:
+                - Name: ConfigEnv
                 - Name: Template
                 - Name: BuildOutput
               RunOrder: 1
