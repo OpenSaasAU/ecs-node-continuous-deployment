@@ -7,15 +7,50 @@ Parameters:
     Type: Number
     Default: 0
 
-  TargetGroup:
-    Type: String
-
   Cluster:
     Type: String
 
   Repository:
     Type: String
+  
+  CONTAINERPORT:
+    Type: Number
+  
+  FACEBOOKCLIENTSECRET:
+    Type: String
+  
+  GOOGLECALLBACKURL:
+    Type: String
+  
+  CLOUDINARYURL:
+    Type: String
+  
+  MAILGUNAPIKEY:
+    Type: String
+    
+  MAILGUNDOMAIN:
+    Type: String
 
+  GOOGLECLIENTID:
+    Type: String
+    
+  FACEBOOKCLIENTID:
+    Type: String
+    
+  GOOGLECLIENTSECRET:
+    Type: String
+  
+  FACEBOOKAPI:
+    Type: String
+ 
+  COOKIESECRET:
+    Type: String
+    
+  LETSENCRYPTEMAIL:
+    Type: String
+    
+  LETSENCRYPTHOST:
+    Type: String
 
 Resources:
   ECSServiceRole:
@@ -33,15 +68,13 @@ Resources:
         }
       ManagedPolicyArns:
         - arn:aws:iam::aws:policy/service-role/AmazonEC2ContainerServiceRole
-
+  
   Service:
     Type: AWS::ECS::Service
     Properties:
       Cluster: !Ref Cluster
-      Role: !Ref ECSServiceRole
       DesiredCount: !Ref DesiredCount
-      TaskDefinition: !Ref TaskDefinition
-     
+      TaskDefinition: !Ref TaskDefinition   
 
   TaskDefinition:
     Type: AWS::ECS::TaskDefinition
@@ -54,9 +87,56 @@ Resources:
             - npm
             - start
           Essential: true
-          Memory: 128
+          MemoryReservation: 128
+          Links:
+            - mongodb:mongodb
           PortMappings:
-            - ContainerPort: 3000
+            - ContainerPort: !Ref CONTAINERPORT
           Environment:
             - Name: Tag
               Value: !Ref Tag
+            - Name: NODE_ENV
+              Value: 'production'
+            - Name: PORT
+              Value: !Ref CONTAINERPORT
+            - Name: MONGO_URI
+              Value: !Sub mongodb://mongodb/${Repository}
+            - Name: FACEBOOK_CLIENT_SECRET
+              Value: !Ref FACEBOOKCLIENTSECRET
+            - Name: GOOGLE_CALLBACK_URL
+              Value: !Ref GOOGLECALLBACKURL
+            - Name: CLOUDINARY_URL
+              Value: !Ref CLOUDINARYURL
+            - Name: MAILGUN_API_KEY
+              Value: !Ref MAILGUNAPIKEY
+            - Name: MAILGUN_DOMAIN
+              Value: !Ref MAILGUNDOMAIN
+            - Name: GOOGLE_CLIENT_ID
+              Value: !Ref GOOGLECLIENTID
+            - Name: FACEBOOK_CLIENT_ID
+              Value: !Ref FACEBOOKCLIENTID
+            - Name: GOOGLE_CLIENT_SECRET
+              Value: !Ref GOOGLECLIENTSECRET
+            - Name: FACEBOOK_API
+              Value: !Ref FACEBOOKAPI
+            - Name: COOKIE_SECRET
+              Value: !Ref COOKIESECRET
+            - Name: LETSENCRYPT_EMAIL
+              Value: !Ref LETSENCRYPTEMAIL
+            - Name: LETSENCRYPT_HOST
+              Value: !Ref LETSENCRYPTHOST
+            - Name: VIRTUAL_PORT
+              Value: !Ref CONTAINERPORT
+            - Name: VIRTUAL_HOST
+              Value: !Ref LETSENCRYPTHOST
+        - Name: mongodb
+          Image: mongo:3.4
+          Essential: true
+          MemoryReservation: 128
+          MountPoints:
+            - SourceVolume: !Sub ${AWS::StackName}-MongoDB-Vol
+              ContainerPath: /data/db
+      Volumes:
+        - Name: !Sub ${AWS::StackName}-MongoDB-Vol
+          Host:
+            SourcePath: /opt/docker/benggdata

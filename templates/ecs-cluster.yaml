@@ -6,12 +6,19 @@ Parameters:
   ClusterSize:
     Type: Number
     Default: 1
+    
+  MaxClusterSize:
+    Type: Number
+    Default: 2
 
   Subnets:
     Type: List<AWS::EC2::Subnet::Id>
 
   SourceSecurityGroup:
     Type: AWS::EC2::SecurityGroup::Id
+  
+  KeyName:
+    Type: String
 
   VpcId:
     Type: AWS::EC2::VPC::Id
@@ -20,7 +27,7 @@ Parameters:
 Mappings:
   AWSRegionToAMI:
     us-east-1:
-      AMI: ami-6df8fe7a
+      AMI: ami-275ffe31
     us-east-2:
       AMI: ami-c6b5efa3
     us-west-1:
@@ -67,15 +74,6 @@ Resources:
       Roles:
         - !Ref ECSRole
 
-  SecurityGroup:
-    Type: "AWS::EC2::SecurityGroup"
-    Properties:
-      GroupDescription: !Sub ${AWS::StackName}-hosts
-      SecurityGroupIngress:
-        - SourceSecurityGroupId: !Ref SourceSecurityGroup
-          IpProtocol: -1
-      VpcId: !Ref VpcId
-
   Cluster:
     Type: AWS::ECS::Cluster
     Properties:
@@ -87,7 +85,7 @@ Resources:
       VPCZoneIdentifier: !Ref Subnets
       LaunchConfigurationName: !Ref LaunchConfiguration
       MinSize: !Ref ClusterSize
-      MaxSize: !Ref ClusterSize
+      MaxSize: !Ref MaxClusterSize
       DesiredCapacity: !Ref ClusterSize
       Tags: 
         - Key: Name
@@ -138,16 +136,81 @@ Resources:
       ImageId: !FindInMap [ AWSRegionToAMI, !Ref "AWS::Region", AMI ]
       InstanceType: !Ref InstanceType
       IamInstanceProfile: !Ref InstanceProfile
+      KeyName: !Ref KeyName
       SecurityGroups:
-        - !Ref SecurityGroup
+        - !Ref SourceSecurityGroup
       UserData:
         "Fn::Base64": !Sub |
           #!/bin/bash
           yum install -y aws-cfn-bootstrap
           /opt/aws/bin/cfn-init -v --region ${AWS::Region} --stack ${AWS::StackName} --resource LaunchConfiguration
           /opt/aws/bin/cfn-signal -e $? --region ${AWS::Region} --stack ${AWS::StackName} --resource AutoScalingGroup
+  
+  Service:
+    Type: AWS::ECS::Service
+    Properties:
+      Cluster: !Ref Cluster
+      DesiredCount: !Ref ClusterSize
+      TaskDefinition: !Ref TaskDefinition   
 
-
+  TaskDefinition:
+    Type: AWS::ECS::TaskDefinition
+    Properties:
+      Family: !Sub ${AWS::StackName}-web-proxy
+      ContainerDefinitions:
+        - Name: NginxLetsEncrypt
+          Image: jrcs/letsencrypt-nginx-proxy-companion
+          MountPoints:
+            - SourceVolume: docker-sock
+              ContainerPath: /var/run/docker.sock
+              ReadOnly: true
+            - SourceVolume: nginx-certs
+              ContainerPath: /etc/nginx/certs
+          VolumesFrom: 
+            - SourceContainer: NginxProxy
+          Essential: true
+          Memory: 128
+        - Name: NginxProxy
+          Image: jwilder/nginx-proxy
+          MountPoints:
+            - SourceVolume: docker-sock
+              ContainerPath: /tmp/docker.sock
+              ReadOnly: true
+            - SourceVolume: nginx-certs
+              ContainerPath: /etc/nginx/certs
+              ReadOnly: true
+            - SourceVolume: nginx-html
+              ContainerPath: /usr/share/nginx/html
+            - SourceVolume: nginx-vhosts
+              ContainerPath: /etc/nginx/vhost.d
+            - SourceVolume: nginx-conf
+              ContainerPath: /etc/nginx/conf.d
+          Essential: true
+          Memory: 128
+          PortMappings:
+            - HostPort: 443
+              ContainerPort: 443
+              Protocol: TCP
+            - HostPort: 80
+              ContainerPort: 80
+              Protocol: TCP
+      Volumes:
+        - Name: docker-sock
+          Host:
+            SourcePath: /var/run/docker.sock
+        - Name: nginx-certs
+          Host:
+            SourcePath: /opt/docker/nginx/certs
+        - Name: nginx-html
+          Host:
+            SourcePath: /opt/docker/nginx/html
+        - Name: nginx-vhosts
+          Host:
+            SourcePath: /opt/docker/nginx/vhosts
+        - Name: nginx-conf
+          Host:
+            SourcePath: /opt/docker/nginx/confd
+        
 Outputs:
   ClusterName:
       Value: !Ref Cluster
