@@ -13,13 +13,55 @@ Parameters:
   Repository:
     Type: String
   
+  LETSENCRYPTEMAIL:
+    Type: String
+    
+  LETSENCRYPTHOST:
+    Type: String
+    
   CONTAINERPORT:
     Type: Number
   
   FACEBOOKCLIENTSECRET:
     Type: String
   
+  FACEBOOKCLIENTID:
+    Type: String
+    
+  FACEBOOKCALLBACKURL:
+    Type: String
+    
+  FACEBOOKAPI:
+    Type: String
+  
+  GOOGLECLIENTSECRET:
+    Type: String
+  
+  GOOGLECLIENTID:
+    Type: String
+  
   GOOGLECALLBACKURL:
+    Type: String
+  
+  GOOGLEBROWSERKEY:
+    Type: String
+  
+  GOOGLESERVERKEY:
+    Type: String
+  
+  GAPROPERTY:
+    Type: String
+  
+  GADOMAIN:
+    Type: String
+  
+  TWITTERCONSUMERKEY:
+    Type: String
+  
+  TWITTERCONSUMERSECRET:
+    Type: String
+  
+  TWITTERCALLBACKURL:
     Type: String
   
   CLOUDINARYURL:
@@ -30,27 +72,11 @@ Parameters:
     
   MAILGUNDOMAIN:
     Type: String
-
-  GOOGLECLIENTID:
-    Type: String
-    
-  FACEBOOKCLIENTID:
-    Type: String
-    
-  GOOGLECLIENTSECRET:
-    Type: String
-  
-  FACEBOOKAPI:
-    Type: String
  
   COOKIESECRET:
     Type: String
     
-  LETSENCRYPTEMAIL:
-    Type: String
-    
-  LETSENCRYPTHOST:
-    Type: String
+
 
 Resources:
   ECSServiceRole:
@@ -73,6 +99,9 @@ Resources:
     Type: AWS::ECS::Service
     Properties:
       Cluster: !Ref Cluster
+      DeploymentConfiguration:
+        MaximumPercent: 150
+        MinimumHealthyPercent: 0
       DesiredCount: !Ref DesiredCount
       TaskDefinition: !Ref TaskDefinition   
 
@@ -115,6 +144,8 @@ Resources:
               Value: !Ref GOOGLECLIENTID
             - Name: FACEBOOK_CLIENT_ID
               Value: !Ref FACEBOOKCLIENTID
+            - Name: FACEBOOK_CALLBACK_URL
+              Value: !Ref FACEBOOKCALLBACKURL
             - Name: GOOGLE_CLIENT_SECRET
               Value: !Ref GOOGLECLIENTSECRET
             - Name: FACEBOOK_API
@@ -129,6 +160,20 @@ Resources:
               Value: !Ref CONTAINERPORT
             - Name: VIRTUAL_HOST
               Value: !Ref LETSENCRYPTHOST
+            - Name: GOOGLE_BROWSER_KEY
+              Value: !Ref GOOGLEBROWSERKEY
+            - Name: GOOGLE_SERVER_KEY
+              Value: !Ref GOOGLESERVERKEY
+            - Name: GA_PROPERTY
+              Value: !Ref GAPROPERTY
+            - Name: GA_DOMAIN
+              Value: !Ref GADOMAIN
+            - Name: TWITTER_CONSUMER_KEY
+              Value: !Ref TWITTERCONSUMERKEY
+            - Name: TWITTER_CALLBACK_URL
+              Value: !Ref TWITTERCALLBACKURL
+            - Name: TWITTER_CONSUMER_SECRET
+              Value: !Ref TWITTERCONSUMERSECRET
         - Name: mongodb
           Image: mongo:3.4
           Essential: true
