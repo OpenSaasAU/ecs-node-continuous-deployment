@@ -1,13 +1,15 @@
 # ECS Reference Architecture: Continuous Deployment
 
+This project is currently setup to run a single instance keystone.js application with a mongodb database, without an elastic loadbalancer, and an nginx proxy with letsencrypt.
 
 The ECS Continuous Deployment reference architecture demonstrates how to achieve [continuous deployment][continuous-deployment] of an application to Amazon ECS using AWS CodePipeline, AWS CodeBuild, and AWS CloudFormation. With continuous deployment, software revisions are deployed to a production environment automatically without explicit approval from a developer, making the entire software release process automated.
 
 Launching this AWS CloudFormation stack provisions a continuous deployment process that uses AWS CodePipeline to monitor a GitHub repository for new commits, AWS CodeBuild to create a new Docker container image and to push it into Amazon ECR, and AWS CloudFormation to deploy the new container image to production on Amazon ECS.
 
+
 [![](images/architecture.png)][architecture]
 
-## Running the example
+## Running
 
 #### 1. Fork the GitHub repository
 
@@ -16,16 +18,17 @@ Launching this AWS CloudFormation stack provisions a continuous deployment proce
 From your terminal application, execute the following command (make sure to replace `<your_github_username>` with your actual GitHub username):
 
 ```console
-git clone https://github.com/<your_github_username>/ecs-demo-php-simple-app
+git clone https://github.com/<your_github_username>/ecs-node-continuous-deployment
 ```
 
 This creates a directory named `ecs-node-continuous-deployment` in your current directory, which contains the code for the Amazon ECS sample app.
 
 #### 2. Upload files to S3
 
-Zip the Templates folder and upload it to an S3 Bucket
+Zip the Templates folder and upload it to an S3 Bucket and change th ecs-refarch-contnuos-deployment.yaml to relect the location of your `TemplateBucket`
 
-Upload each .yaml file int the tempates directory to the same s3bucket.
+Copy configEnvTemplate.json to configEnv.json and enter your app environment details. Upload configEnv.json to your S3 config bucket.
+
 
 #### 3. Create the CloudFormation stack
 
@@ -47,14 +50,6 @@ The CloudFormation template requires the following parameters:
 The CloudFormation stack provides the following output:
 
 - **PipelineUrl**: The continuous deployment pipeline in the AWS Management Console.
-
-### Testing the example
-
-After the CloudFormation stack is created, the latest commit to the GitHub repository is run through the pipeline and deployed to ECS. Open the **PipelineUrl** to watch the first revision run through the CodePipeline pipeline. After the deploy step turns green, open the URL from **ServiceUrl** which loads a page similar to this:
-
-![ECS sample app](http://docs.aws.amazon.com/AmazonECS/latest/developerguide/images/simple-php-app.png)
-
-To test continuous deployment, make a change to src/index.php in the ecs-demo-php-simple-app repository and push it to GitHub. CodePipeline detects the change, builds the new application, and deploys it to your cluster automatically. After the pipeline finishes deploying the revision, reload the page to see the changes made.
 
 ### Cleaning up the example resources
 

@@ -1,0 +1,24 @@
+{
+    "Parameters":{
+        "FACEBOOKCLIENTSECRET": "",
+        "FACEBOOKCLIENTID":"",
+        "FACEBOOKCALLBACKURL":"",
+        "FACEBOOKAPI":"",
+        "CLOUDINARYURL":"", 
+        "MAILGUNAPIKEY":"",
+        "MAILGUNDOMAIN":"", 
+        "GOOGLECLIENTID":"",
+        "GOOGLECLIENTSECRET":"",
+        "GOOGLECALLBACKURL": "",
+        "GOOGLEBROWSERKEY": "",
+        "GAPROPERTY": "",
+        "GADOMAIN": "",
+        "GOOGLESERVERKEY":"",
+        "COOKIESECRET":"",
+        "TWITTERCONSUMERKEY": "",
+        "TWITTERCONSUMERSECRET": "",
+        "TWITTERCALLBACKURL": "",
+        "LETSENCRYPTEMAIL":"", 
+        "LETSENCRYPTHOST":"",
+        "CONTAINERPORT": "3000"
+}}
