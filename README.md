@@ -1,6 +1,6 @@
 # ECS Reference Architecture: Continuous Deployment
 
-This project is currently setup to run a single instance keystone.js application with a mongodb database, without an elastic loadbalancer, and an nginx proxy with letsencrypt.
+This project is currently setup to run a single instance keystone.js application with a mongodb database, without an elastic loadbalancer, and an nginx proxy with letsencrypt. The app that you are building requires a Dockerfile and buildspec.yml it build the docker image. For a demo see https://github.com/OpenSaasAU/BendigoGigGuide-site
 
 The ECS Continuous Deployment reference architecture demonstrates how to achieve [continuous deployment][continuous-deployment] of an application to Amazon ECS using AWS CodePipeline, AWS CodeBuild, and AWS CloudFormation. With continuous deployment, software revisions are deployed to a production environment automatically without explicit approval from a developer, making the entire software release process automated.
 
